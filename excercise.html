@@ -1,0 +1,212 @@
+<html>
+    <header>
+        <title>Hello world</title>
+	<style>
+		.progression { display: flex; flex-direction: row; }
+		.control { display: flex; flex-direction: column; padding: 5px; }
+		.chord { display: flex; flex-direction: column; text-align: center; }
+		.player0 { color: black; background-color: white;  }
+		.player1 { color: black; background-color: yellow; }
+		.player2 { color: white; background-color: green; }
+		.note { border: 1px solid black; }
+		.root { border: 3px solid black; font-weight: bold; }
+	</style>
+    </header>
+    <body>
+
+	<table>
+	    <!-- Controls  -->
+	    <tr>
+		<th>
+	            <span class="control">
+        	        <select id="chord1" name="chord1" onchange="chordOnchange(1)"></select>
+	                <select id="chordType1" onchange="chordOnchange(1)"></select>
+	            </span>
+		</th>
+		<th>            
+                    <span class="control">
+                        <select id="chord2" name="chord2" onchange="chordOnchange(2)"></select>
+                        <select id="chordType2" onchange="chordOnchange(2)"></select>
+                    </span>
+                </th>
+		<th>            
+                    <span class="control">
+                        <select id="chord3" name="chord3" onchange="chordOnchange(3)"></select>
+                        <select id="chordType3" onchange="chordOnchange(3)"></select>
+                    </span>
+                </th>
+		<th>            
+                    <span class="control">
+                        <select id="chord4" name="chord4" class="" onchange="chordOnchange(4)"></select>
+                        <select id="chordType4" onchange="chordOnchange(4)"></select>
+                    </span>
+                </th>
+	    </th>
+
+	    <!-- Label -->
+	    <tr>
+		<td id="label1">C</td>
+		<td id="label2">C</td>
+		<td id="label3">C</td>
+		<td id="label4">C</td>
+	    </tr>
+
+	    <!-- Fifth -->
+	    <tr>
+		<td id="fifth1" class="note">G</td>
+		<td id="fifth2" class="note">G</td>
+		<td id="fifth3" class="note">G</td>
+		<td id="fifth4" class="note">G</td>
+	    </tr>
+
+	    <!-- Third -->
+	    <tr>
+	   	<td id="third1" class="note">E</td>
+	   	<td id="third2" class="note">E</td>
+	   	<td id="third3" class="note">E</td>
+	   	<td id="third4" class="note">E</td>
+	    </tr>
+
+	    <!-- Root -->
+	    <tr>
+	   	<td id="root1" class="root note">C</td>
+	   	<td id="root2" class="root note">C</td>
+	   	<td id="root3" class="root note">C</td>
+	   	<td id="root4" class="root note">C</td>
+	    </tr>
+
+	    <!-- Controls -->
+	    <tr>
+		<td><button onclick="assignNotes(1);">Assign</button></td>
+		<td><button onclick="assignNotes(2);">Assign</button></td>
+		<td><button onclick="assignNotes(3);">Assign</button></td>
+		<td><button onclick="assignNotes(4);">Assign</button></td>
+	    </tr>
+	</table>
+
+	<button onclick="assignNotes(1);assignNotes(2);assignNotes(3);assignNotes(4);">Assign All</button>
+
+        <script>
+
+	    const chords = {"C":"C", "B":"B", "B♭":"B♭/A♯", "A♯":"B♭/A♯", "A":"A", "A♭":"A♭/G♯", "G♯":"A♭/G♯", "G":"G", "G♭":"G♭/F♯", "F♯":"G♭/F♯", "F":"F", "E":"E", "E♭":"E♭/D♯", "D♯":"E♭/D♯", "D":"D", "D♭":"D♭/C♯", "C♯":"D♭/C♯"};
+	    const notes = ["C", "B", "B♭/A♯", "A", "A♭/G♯", "G", "G♭/F♯", "F", "E", "E♭/D♯", "D", "D♭/C♯"];
+	    const chordTypes = ["major", "minor" /* , "augmented", "diminished" */ ];
+	    const playerClasses = ["player0", "player1", "player2"];
+
+	    [1,2,3,4].forEach(it => init(it));
+
+	    function init(index) {
+
+		var chord = document.getElementById('chord' + index);
+		var chordType = document.getElementById('chordType' + index);
+
+		Object.keys(chords).forEach(c => {
+		    var opt = document.createElement('option');
+		    opt.value = c;
+		    opt.innerHTML = c;
+		    chord.appendChild(opt);
+		});
+
+		chordTypes.forEach(cType => {
+		    var opt = document.createElement('option');
+                    opt.value = cType;
+                    opt.innerHTML = cType;
+                    chordType.appendChild(opt);
+		});
+	    }
+
+	    function chordOnchange(index) {
+
+		const thirdOffset = getThirdOffset(index);
+		const fifthOffset = getFifthOffset(index);
+
+		const chord = document.getElementById('chord' + index).value;
+		const rootIndex = notes.indexOf(chords[chord]);
+		const thirdIndex = rootIndex >= thirdOffset ? rootIndex - thirdOffset : ((rootIndex - thirdOffset) % notes.length) + notes.length;
+		const fifthIndex = rootIndex >= fifthOffset ? rootIndex - fifthOffset : ((rootIndex - fifthOffset) % notes.length) + notes.length;
+
+		const isMinor = document.getElementById('chordType' + index).value === 'minor';
+
+		document.getElementById('label' + index).innerHTML = formatChord(chord, isMinor);	
+		document.getElementById('fifth' + index).innerHTML = formatNote(notes[fifthIndex], chord, isMinor);
+		document.getElementById('third'+ index).innerHTML = formatNote(notes[thirdIndex], chord, isMinor);	
+		document.getElementById('root' + index).innerHTML = formatNote(notes[rootIndex], chord, isMinor);	
+	    }
+
+	    function getThirdOffset(index) {
+
+		switch ( document.getElementById('chordType' + index).value ) {
+
+		    case "minor":
+			return 3;
+		    case "diminished":
+			return 3;
+		}
+
+		return 4;
+	    }
+
+	    function getFifthOffset(index) {
+
+		switch ( document.getElementById('chordType' + index).value ) {
+
+		    case "augmented":
+			return 8;
+		    case "diminished":
+			return 6;
+		}
+
+		return 7;
+	    }
+
+	    function assignNotes(index) {
+
+		var assignments = [0, 0, 0];
+		assignments[Math.floor(Math.random() * assignments.length)] = 1;
+		
+		if ( Math.floor(Math.random() * 2) ) {
+		    assignments[2] ? assignments[1] = 2 : assignments[2] = 2; 
+		} else {
+		    assignments[0] ? assignments [1] = 2 : assignments[0] = 2;
+		}
+
+		removeAssignments(index);
+
+		document.getElementById('fifth' + index).classList.add("player" + assignments[0]);
+                document.getElementById('third' + index).classList.add("player" + assignments[1]);
+                document.getElementById('root' + index).classList.add("player" + assignments[2]);
+	    }
+
+	    function removeAssignments(index) {
+
+		const chordComponents = ["fifth", "third", "root"]
+		
+		chordComponents.forEach(chordComponent => {
+
+		    var element = document.getElementById(chordComponent + index);
+		    playerClasses.forEach(cssClass => element.classList.remove(cssClass));
+		});
+	    }
+
+	    function formatChord(raw, isMinor) {
+		return isMinor ? 
+		    raw.toLowerCase() + "m" : 
+		    raw;
+	    }
+
+	    function formatNote(raw, chord, isMinor) {
+
+		if (raw.length == 1) {
+		    return raw;
+		} else {
+
+		    var splitIndex = isMinor ?
+			chord.endsWith("♯") ? 1 : chord === 'B' ? 1 : 0 :
+			chord.endsWith("♭") ? 0 : 1;
+
+		    return raw.split("/")[splitIndex];
+		}
+	    }
+	</script>
+    </body>
+</html>
